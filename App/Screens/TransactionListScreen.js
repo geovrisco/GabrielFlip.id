@@ -9,6 +9,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 
 import BaseContainer from '../Components/BaseContainer';
@@ -20,6 +21,7 @@ import formatHistory from '../Helpers/FormatTransactionHistory';
 import {AscendingSort, DescendingSort} from '../Helpers/sort';
 import {routes} from '../Config/route';
 import {constants} from '../Config/constants';
+import LoadingIndicator from '../Components/LoadingIndicator';
 
 const {width, height} = Dimensions.get('screen');
 
@@ -30,6 +32,7 @@ export default function TransactionListScreen({navigation, route}) {
   const [showModal, setShowModal] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [sortText, setSortText] = useState('URUTKAN');
+  const [loading, setLoading] = useState(false);
 
   const modalItem = [
     {
@@ -71,6 +74,7 @@ export default function TransactionListScreen({navigation, route}) {
 
   const fetchHistoryData = async () => {
     try {
+      setLoading(true);
       let response = await fetch('https://nextar.flip.id/frontend-test', {
         method: 'GET',
       });
@@ -82,6 +86,7 @@ export default function TransactionListScreen({navigation, route}) {
       console.log(error);
       setTransactionData([]);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -147,12 +152,17 @@ export default function TransactionListScreen({navigation, route}) {
         buttonTitle={sortText}
       />
 
-      <FlatList
-        bounces={false}
-        data={filteredTransactionData}
-        keyExtractor={item => item.id}
-        renderItem={renderTransactionHistory}
-      />
+      {loading ? (
+        <LoadingIndicator />
+      ) : (
+        <FlatList
+          bounces={false}
+          data={filteredTransactionData}
+          keyExtractor={item => item.id}
+          renderItem={renderTransactionHistory}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </BaseContainer>
   );
 }
